@@ -30,7 +30,11 @@ func FastSearch(out io.Writer) {
 	var (
 		scanner      = bufio.NewScanner(file)
 		seenBrowsers = map[string]struct{}{}
-		dataPool     = sync.Pool{
+		userPool     = sync.Pool{
+			New: func() interface{} {
+				return new(user.User)
+			}}
+		dataPool = sync.Pool{
 			New: func() interface{} {
 				return new(bytes.Buffer)
 			}}
@@ -39,7 +43,9 @@ func FastSearch(out io.Writer) {
 	fmt.Fprintln(out, "found users:")
 	var i = 0
 	for scanner.Scan() {
-		user := user.User{}
+		user := userPool.Get().(*user.User)
+		defer userPool.Put(user)
+
 		err := user.UnmarshalJSON(scanner.Bytes())
 		if err != nil {
 			log.Fatal(err)

@@ -49,3 +49,39 @@ ok coursera/hw3 3.897s
 
 Примечание:
 * easyjson основан на рефлекции и не может работать с пакетом main. Для генерации кода вам необходимо вынести вашу структуру в отдельный пакет, сгенерить там код, потом забрать его в main
+
+
+###Результат
+```
+[sim@oxy hw3_bench] (master) $ make
+go test -bench . -benchmem -cpuprofile=cpu.out -memprofile=mem.out -memprofilerate=1 .
+goos: darwin
+goarch: amd64
+pkg: coursera/hw3_bench
+BenchmarkSlow-4   	       2	 875346638 ns/op	18808992 B/op	  195812 allocs/op
+BenchmarkFast-4   	      32	  34618589 ns/op	  707043 B/op	   10197 allocs/op
+PASS
+ok  	coursera/hw3_bench	4.802s
+go tool pprof hw3_bench.test cpu.out
+File: hw3_bench.test
+Type: cpu
+Time: Jun 17, 2020 at 2:40pm (EEST)
+Duration: 4.69s, Total samples = 4.54s (96.79%)
+Entering interactive mode (type "help" for commands, "o" for options)
+(pprof) top
+Showing nodes accounting for 3630ms, 79.96% of 4540ms total
+Dropped 92 nodes (cum <= 22.70ms)
+Showing top 10 nodes out of 114
+      flat  flat%   sum%        cum   cum%
+     880ms 19.38% 19.38%      930ms 20.48%  runtime.addspecial
+     820ms 18.06% 37.44%      820ms 18.06%  syscall.syscall
+     520ms 11.45% 48.90%      620ms 13.66%  runtime.step
+     380ms  8.37% 57.27%     1020ms 22.47%  runtime.pcvalue
+     320ms  7.05% 64.32%      320ms  7.05%  runtime.madvise
+     210ms  4.63% 68.94%     1480ms 32.60%  runtime.gentraceback
+     200ms  4.41% 73.35%     1180ms 25.99%  runtime.setprofilebucket
+     110ms  2.42% 75.77%      130ms  2.86%  runtime.findfunc
+     100ms  2.20% 77.97%      100ms  2.20%  runtime.readvarint
+      90ms  1.98% 79.96%       90ms  1.98%  runtime.usleep
+(pprof) web
+```
