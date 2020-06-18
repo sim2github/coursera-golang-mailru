@@ -15,12 +15,11 @@ import (
 
 func main() {
 	FastSearch(os.Stdout)
-	SlowSearch(os.Stdout)
+	// SlowSearch(os.Stdout)
 }
 
 // вам надо написать более быструю оптимальную этой функции
 func FastSearch(out io.Writer) {
-	const N = 1000
 	file, err := os.Open(filePath)
 	if err != nil {
 		panic(err)
@@ -30,48 +29,38 @@ func FastSearch(out io.Writer) {
 	var (
 		scanner      = bufio.NewScanner(file)
 		seenBrowsers = map[string]struct{}{}
-		userPool     = sync.Pool{
-			New: func() interface{} {
-				return new(user.User)
-			}}
-		dataPool = sync.Pool{
+		dataPool     = sync.Pool{
 			New: func() interface{} {
 				return new(bytes.Buffer)
 			}}
+		user = &user.User{}
 	)
 
 	fmt.Fprintln(out, "found users:")
 	var i = 0
 	for scanner.Scan() {
-		user := userPool.Get().(*user.User)
-		defer userPool.Put(user)
-
-		err := user.UnmarshalJSON(scanner.Bytes())
+		// TODO: in future email field may contain more than one email devided by separator.
+		ub := bytes.Replace(scanner.Bytes(), []byte("@"), []byte(" [at] "), 1)
+		user.IsAndroid = false
+		user.IsMSIE = false
+		// TODO: check data - unmarshal must overwrite user.Browsers and user.Name at list with default values.
+		err := user.UnmarshalJSON(ub)
 		if err != nil {
 			log.Fatal(err)
 		}
-		user.Email = strings.ReplaceAll(user.Email, "@", " [at] ")
 
 		for _, browser := range user.Browsers {
-			var (
-				isAndroid = strings.Contains(browser, "Android")
-				isMSIE    = strings.Contains(browser, "MSIE")
-			)
-
-			if isAndroid {
-				user.IsAndroid = isAndroid
+			if strings.Contains(browser, "Android") {
+				user.IsAndroid = true
+			} else if strings.Contains(browser, "MSIE") {
+				user.IsMSIE = true
+			} else {
+				continue
 			}
 
-			if isMSIE {
-				user.IsMSIE = isMSIE
+			if _, ok := seenBrowsers[browser]; !ok {
+				seenBrowsers[browser] = struct{}{}
 			}
-
-			if isAndroid || isMSIE {
-				if _, ok := seenBrowsers[browser]; !ok {
-					seenBrowsers[browser] = struct{}{}
-				}
-			}
-
 		}
 
 		if user.IsAndroid && user.IsMSIE {

@@ -53,16 +53,16 @@ func easyjson9e1087fdDecodeCourseraHw3BenchUser(in *jlexer.Lexer, out *User) {
 				}
 				for !in.IsDelim(']') {
 					var v1 string
-					v1 = string(in.String())
+					v1 = string(in.UnsafeString())
 					out.Browsers = append(out.Browsers, v1)
 					in.WantComma()
 				}
 				in.Delim(']')
 			}
 		case "email":
-			out.Email = string(in.String())
+			out.Email = string(in.UnsafeString())
 		case "name":
-			out.Name = string(in.String())
+			out.Name = string(in.UnsafeString())
 		default:
 			in.SkipRecursive()
 		}
